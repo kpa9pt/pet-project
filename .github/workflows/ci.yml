@@ -35,6 +35,7 @@ jobs:
           TELEGRAM_TOKEN: fake_token_for_ci
           SECRET_KEY: fake_secret_key_for_ci
         run: |
+          pip install psycopg2-binary
           alembic upgrade head
           alembic check
       - name: Run tests
