@@ -32,8 +32,14 @@ jobs:
       - name: Run migrations check
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost/test_db
+          TELEGRAM_TOKEN: fake_token_for_ci
+          SECRET_KEY: fake_secret_key_for_ci
         run: |
           alembic upgrade head
           alembic check
       - name: Run tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost/test_db
+          TELEGRAM_TOKEN: fake_token_for_ci
+          SECRET_KEY: fake_secret_key_for_ci
         run: pytest tests/ -v
