@@ -27,8 +27,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run linters
         run: |
-          flake8 services/ shared/
-          black --check services/ shared/
+          flake8 . --config=.flake8
+          black --check .
       - name: Run migrations check
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost/test_db
