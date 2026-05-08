@@ -1,0 +1,39 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run linters
+        run: |
+          flake8 services/ shared/
+          black --check services/ shared/
+      - name: Run migrations check
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost/test_db
+        run: |
+          alembic upgrade head
+          alembic check
+      - name: Run tests
+        run: pytest tests/ -v

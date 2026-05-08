@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+service OrderProcessor {
+  rpc CreateOrder (OrderRequest) returns (OrderReply);
+}
+
+message OrderRequest {
+  string product_name = 1;
+  int32 quantity = 2;
+  int32 user_id = 3;
+}
+
+message OrderReply {
+  int32 order_id = 1;
+  string status = 2;
+  string message = 3;
+}
