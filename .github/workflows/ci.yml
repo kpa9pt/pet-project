@@ -31,11 +31,10 @@ jobs:
           black --check .
       - name: Run migrations check
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost/test_db
-          TELEGRAM_TOKEN: fake_token_for_ci
-          SECRET_KEY: fake_secret_key_for_ci
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test_db
+          TELEGRAM_TOKEN: fake
+          SECRET_KEY: fake
         run: |
-          pip install psycopg2-binary
           alembic upgrade head
           alembic check
       - name: Run tests
