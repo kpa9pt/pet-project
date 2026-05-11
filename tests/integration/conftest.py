@@ -20,7 +20,7 @@ ALEMBIC_INI = BASE_DIR / "alembic.ini"
 def docker_compose_up():
     # Останавливаем и удаляем старые контейнеры, если они висят
     subprocess.run(
-        ["docker", "compose", "down", "--volumes"],
+        ["docker", "compose", "down", "--volumes", "--remove-orphans"],
         cwd=str(BASE_DIR),
         check=False,
     )
@@ -36,7 +36,7 @@ def docker_compose_up():
 
     # Останавливаем и удаляем всё после тестов
     subprocess.run(
-        ["docker", "compose", "down", "--volumes"],
+        ["docker", "compose", "down", "--volumes", "--remove-orphans"],
         cwd=str(BASE_DIR),
         check=False,
     )
