@@ -48,7 +48,7 @@ def docker_compose_up():
 @pytest.fixture(scope="session")
 def database_url(docker_compose_up):
     # PostgreSQL доступен на localhost:5432
-    return "postgresql+asyncpg://postgres:postgres@localhost:5432/orders"
+    return "postgresql+asyncpg://postgres:postgres@localhost:5433/orders"
 
 
 # ---------------------------------------------------

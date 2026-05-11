@@ -10,7 +10,7 @@ async def serve(stop_event: asyncio.Event = None):
         OrderProcessorServicer(), server
     )
     server.add_insecure_port("[::]:50051")
-    print("✅ gRPC сервер запущен на порту 50051")
+    print("✅ gRPC сервер запущен на порту 50051", flush=True)
     await server.start()
 
     if stop_event:
