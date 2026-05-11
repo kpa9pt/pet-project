@@ -56,8 +56,8 @@
 1.  **Клонируйте репозиторий** (или скачайте ZIP-архивом):
 
     ```bash
-    git clone https://github.com/kpa9pt/order_system.git
-    cd order_system
+    git clone https://github.com/kpa9pt/pet-project.git
+    cd pet-project
     ```
 
 2.  **Запустите проект одной командой**:
