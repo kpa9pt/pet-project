@@ -30,9 +30,11 @@ services:
 
   grpc-server:
     build: .
-    command: ["python", "-m", "services.order_processor.app.server"]
+    command: [ "python", "-m", "services.order_processor.app.server" ]
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres/orders
+      TELEGRAM_TOKEN: fake_token_for_ci
+      SECRET_KEY: fake_secret_key_for_ci
     ports:
       - "50051:50051"
     depends_on:
