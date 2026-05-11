@@ -18,9 +18,9 @@ jobs:
           black --check .
       - name: Start Docker Compose
         run: |
-          docker-compose up -d --build
+          docker compose up -d --build
           # Ждём, пока PostgreSQL поднимется
-          timeout 30 sh -c 'until docker-compose exec -T postgres pg_isready; do sleep 1; done'
+          timeout 30 sh -c 'until docker compose exec -T postgres pg_isready; do sleep 1; done'
       - name: Run migrations check
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5433/orders
@@ -36,4 +36,4 @@ jobs:
           SECRET_KEY: fake_secret_key_for_ci
         run: pytest tests/ -v
       - name: Stop Docker Compose
-        run: docker-compose down
+        run: docker compose down
