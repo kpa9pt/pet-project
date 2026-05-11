@@ -3,15 +3,69 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: order_system_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: order_system
+      POSTGRES_DB: orders
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  grpc-server:
+    build: .
+    command: ["python", "-m", "services.order_processor.app.server"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres/orders
+    ports:
+      - "50051:50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  fastapi:
+    build: .
+    command: ["uvicorn", "services.gateway.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres/orders
+      RABBITMQ_HOST: rabbitmq
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+    ports:
+      - "8000:8000"
+    depends_on:
+      grpc-server:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  notifier:
+    build: .
+    command: ["python", "-m", "services.notifier.app.consumer"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres/orders
+      RABBITMQ_HOST: rabbitmq
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   postgres_data:

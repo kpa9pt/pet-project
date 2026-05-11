@@ -1,47 +1,54 @@
 import os
+import subprocess
 from pathlib import Path
 
 import pytest
 import pytest_asyncio
 
-from testcontainers.postgres import PostgresContainer
 from alembic import command
 from alembic.config import Config
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    async_sessionmaker,
-)
-
-# ---------------------------------------------------
-# Paths
-# ---------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = BASE_DIR / "alembic.ini"
 
 
 # ---------------------------------------------------
-# 1. PostgreSQL container
+# 1. Запуск всех сервисов через docker-compose
 # ---------------------------------------------------
 @pytest.fixture(scope="session")
-def postgres_container():
-    with PostgresContainer("postgres:16") as postgres:
-        yield postgres
-
-
-# ---------------------------------------------------
-# 2. DATABASE_URL
-# ---------------------------------------------------
-@pytest.fixture(scope="session")
-def database_url(postgres_container):
-    sync_url = postgres_container.get_connection_url()
-
-    async_url = sync_url.replace(
-        "postgresql+psycopg2",
-        "postgresql+asyncpg",
+def docker_compose_up():
+    # Останавливаем и удаляем старые контейнеры, если они висят
+    subprocess.run(
+        ["docker-compose", "down", "--volumes"],
+        cwd=str(BASE_DIR),
+        check=False,
     )
 
-    return async_url
+    # Поднимаем все контейнеры
+    subprocess.run(
+        ["docker-compose", "up", "-d", "--build"],
+        cwd=str(BASE_DIR),
+        check=True,
+    )
+
+    yield
+
+    # Останавливаем и удаляем всё после тестов
+    subprocess.run(
+        ["docker-compose", "down", "--volumes"],
+        cwd=str(BASE_DIR),
+        check=False,
+    )
+
+
+# ---------------------------------------------------
+# 2. DATABASE_URL для тестов (на хосте)
+# ---------------------------------------------------
+@pytest.fixture(scope="session")
+def database_url(docker_compose_up):
+    # PostgreSQL доступен на localhost:5432
+    return "postgresql+asyncpg://postgres:postgres@localhost:5432/orders"
 
 
 # ---------------------------------------------------
@@ -50,19 +57,12 @@ def database_url(postgres_container):
 @pytest.fixture(scope="session", autouse=True)
 def apply_migrations(database_url):
     os.environ["DATABASE_URL"] = database_url
-
     alembic_cfg = Config(str(ALEMBIC_INI))
-
-    # абсолютный путь до migrations
     alembic_cfg.set_main_option(
-        "script_location",
-        str(BASE_DIR / "shared/db/migrations"),
+        "script_location", str(BASE_DIR / "shared/db/migrations")
     )
-
     command.upgrade(alembic_cfg, "head")
-
     yield
-
     command.downgrade(alembic_cfg, "base")
 
 
@@ -71,17 +71,8 @@ def apply_migrations(database_url):
 # ---------------------------------------------------
 @pytest_asyncio.fixture
 async def db_session(database_url, apply_migrations):
-    engine = create_async_engine(
-        database_url,
-        echo=False,
-    )
-
-    session_maker = async_sessionmaker(
-        bind=engine,
-        expire_on_commit=False,
-    )
-
+    engine = create_async_engine(database_url, echo=False)
+    session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
     async with session_maker() as session:
         yield session
-
     await engine.dispose()
