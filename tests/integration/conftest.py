@@ -1,13 +1,21 @@
 import os
+
+# Заглушки для Pydantic (устанавливаются ДО импорта app)
+os.environ.setdefault("TELEGRAM_TOKEN", "fake_token_for_tests")  # noqa: E402
+os.environ.setdefault("SECRET_KEY", "fake_secret_key_for_tests")  # noqa: E402
+os.environ.setdefault(  # noqa: E402
+    "DATABASE_URL", "postgresql+asyncpg://user:pass@localhost:5432/stub"
+)
 import subprocess
 from pathlib import Path
-
 import pytest
 import pytest_asyncio
-
 from alembic import command
 from alembic.config import Config
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from fastapi.testclient import TestClient
+from services.gateway.app.main import app
+from services.gateway.app.dependencies.auth import get_current_user
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = BASE_DIR / "alembic.ini"
@@ -76,3 +84,15 @@ async def db_session(database_url, apply_migrations):
     async with session_maker() as session:
         yield session
     await engine.dispose()
+
+
+async def fake_get_current_user():
+    return 1
+
+
+@pytest.fixture
+def client():
+    app.dependency_overrides[get_current_user] = fake_get_current_user
+    with TestClient(app) as client:
+        yield client
+    app.dependency_overrides = {}
