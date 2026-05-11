@@ -2,7 +2,10 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
-from shared.settings import settings
+
+from shared import get_settings
+
+settings = get_settings()
 
 SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"

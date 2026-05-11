@@ -7,11 +7,19 @@ from sqlalchemy.engine import Connection
 from alembic import context
 
 from shared.models import Base
-from shared.settings import settings
+
+import os
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+DATABASE_URL = os.environ["DATABASE_URL"]
+
+config.set_main_option(
+    "sqlalchemy.url",
+    DATABASE_URL,
+)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -44,8 +52,9 @@ def run_migrations_offline() -> None:
 
     """
     # url = config.get_main_option("sqlalchemy.url")
+
     context.configure(
-        url=settings.database_url,
+        url=config.get_main_option("sqlalchemy.url"),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -65,9 +74,10 @@ def do_run_migrations(connection: Connection) -> None:
 async def run_async_migrations() -> None:
     from sqlalchemy.ext.asyncio import create_async_engine
 
-    # Создаём движок напрямую из settings
+    # settings = get_settings()
+
     connectable = create_async_engine(
-        settings.database_url,
+        DATABASE_URL,
         poolclass=pool.NullPool,
     )
 

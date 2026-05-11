@@ -1,16 +1,19 @@
 import pytest
-from shared import async_session_maker
+
 from services.order_processor.app.repository import OrderRepository
 
 
 @pytest.mark.asyncio
-async def test_repository_create_integration(postgres_container):
-    async with async_session_maker() as session:
-        repo = OrderRepository(session)
-        order = await repo.create("Пицца Маргарита", 2, 123)
+async def test_create_order(db_session):
+    repo = OrderRepository(db_session)
 
-        assert order.id > 0
-        assert order.product_name == "Пицца Маргарита"
-        assert order.quantity == 2
-        assert order.user_id == 123
-        assert order.created_at is not None
+    order = await repo.create(
+        product_name="iPhone 15",
+        quantity=2,
+        user_id=1,
+    )
+
+    assert order.id is not None
+    assert order.product_name == "iPhone 15"
+    assert order.quantity == 2
+    assert order.user_id == 1

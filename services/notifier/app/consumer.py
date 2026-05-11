@@ -2,10 +2,12 @@ import asyncio
 import logging
 from aiogram import Bot
 from faststream.rabbit import RabbitBroker
-from shared import settings
+from shared import get_settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+settings = get_settings()
 
 bot = Bot(token=settings.telegram_token)
 broker = RabbitBroker()

@@ -1,4 +1,5 @@
-from shared import async_session_maker, order_pb2, order_pb2_grpc
+from shared import order_pb2, order_pb2_grpc
+from shared.db import get_async_session_maker
 from .repository import OrderRepository
 
 
@@ -11,7 +12,9 @@ class OrderProcessorServicer(order_pb2_grpc.OrderProcessorServicer):
         Вызывается при получении gRPC запроса CreateOrder.
         """
         # 1. Создаём сессию БД (асинхронный контекстный менеджер)
-        async with async_session_maker() as session:
+        session_maker = get_async_session_maker()
+
+        async with session_maker() as session:
             # 2. Создаём репозиторий (внедряем сессию через конструктор)
             repo = OrderRepository(session)
 

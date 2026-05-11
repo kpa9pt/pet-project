@@ -8,11 +8,14 @@ from services.gateway.app import (
     OrderResponse,
     OrderListItem,
 )
-from shared import Order, async_session_maker, order_pb2, order_pb2_grpc
+from shared import Order, order_pb2, order_pb2_grpc
 from ..rabbit.producer import publish_order_notification
 from services.gateway.app.dependencies import grpc_circuit_breaker
+from shared.db import get_async_session_maker
 
 router = APIRouter(prefix="/orders", tags=["orders"])
+
+session_maker = get_async_session_maker()
 
 
 @router.post("/", response_model=OrderResponse)
@@ -58,7 +61,7 @@ async def create_order(
 
 @router.get("/", response_model=list[OrderListItem])
 async def get_orders(user_id: int = Depends(get_current_user)):
-    async with async_session_maker() as session:
+    async with session_maker() as session:
         result = await session.execute(select(Order).where(Order.user_id == user_id))
         orders = result.scalars().all()
         return [
