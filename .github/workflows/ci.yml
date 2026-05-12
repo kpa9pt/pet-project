@@ -3,43 +3,23 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-test:
-runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest
 
-steps:
-  - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-  - uses: actions/setup-python@v5
-    with:
-      python-version: "3.14"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
 
-  - name: Install dependencies
-    run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-  - name: Run linters
-    run: |
-      flake8 . --config=.flake8
-      black --check .
+      - name: Run linters
+        run: |
+          flake8 . --config=.flake8
+          black --check .
 
-  - name: Start infrastructure
-    run: docker compose up -d --build
-
-  - name: Wait for services to become healthy
-    run: |
-      timeout 60 sh -c '
-        until [ "$(docker inspect --format="{{json .State.Health.Status}}" $(docker compose ps -q postgres))" = "\"healthy\"" ] &&
-              [ "$(docker inspect --format="{{json .State.Health.Status}}" $(docker compose ps -q rabbitmq))" = "\"healthy\"" ] &&
-              [ "$(docker inspect --format="{{json .State.Health.Status}}" $(docker compose ps -q fastapi))" = "\"healthy\"" ] &&
-              [ "$(docker inspect --format="{{json .State.Health.Status}}" $(docker compose ps -q grpc-server))" = "\"healthy\"" ];
-        do
-          sleep 2
-        done
-      '
-
-  - name: Run tests
-    run: make test
-
-  - name: Stop infrastructure
-    if: always()
-    run: docker compose down -v
-```
+      - name: Run tests
+        run: make test
