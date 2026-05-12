@@ -27,6 +27,10 @@ jobs:
           TELEGRAM_TOKEN: fake
           SECRET_KEY: fake
         run: |
+          until pg_isready -h postgres -U postgres; do
+            sleep 1
+          done
+
           alembic upgrade head
           alembic check
       - name: Run tests
