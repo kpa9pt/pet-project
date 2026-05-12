@@ -72,6 +72,28 @@
 - **Swagger UI (FastAPI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
 - **RabbitMQ Management UI**: [http://localhost:15672](http://localhost:15672) (логин/пароль: `guest`/`guest`)
 
+## 🔐 Переменные окружения
+
+Для работы уведомлений в Telegram и JWT авторизации необходимо создать файл `.env` (на основе `.env.example`):
+
+```bash
+cp .env.example .env
+````
+
+| Переменная | Описание |
+|---|---|
+| `TELEGRAM_TOKEN` | Токен Telegram-бота, полученный у `@BotFather` |
+| `SECRET_KEY` | Секретный ключ для JWT. Можно сгенерировать командой: `openssl rand -hex 32` |
+| `DATABASE_URL` | URL подключения к PostgreSQL. Для Docker Compose уже настроен по умолчанию |
+
+### Пример `.env`
+
+```env
+TELEGRAM_TOKEN=your_telegram_token
+SECRET_KEY=your_secret_key
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/orders
+```
+
 ## 📖 Документация
 
 ### API Эндпоинты

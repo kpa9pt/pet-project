@@ -1,3 +1,4 @@
+import os
 import asyncio
 import logging
 from aiogram import Bot
@@ -10,8 +11,7 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 bot = Bot(token=settings.telegram_token)
-broker = RabbitBroker()
-
+broker = RabbitBroker(host=os.getenv("RABBITMQ_HOST", "localhost"))
 # Куда отправлять уведомления (ваш chat_id, который вы получили раньше)
 TELEGRAM_CHAT_ID = 836241714  # замените на свой, если нужно
 
