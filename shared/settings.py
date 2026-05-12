@@ -6,8 +6,8 @@ class Settings(BaseSettings):
     database_url: str
     secret_key: str
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
-def get_settings() -> Settings:
+def get_settings():
     return Settings()

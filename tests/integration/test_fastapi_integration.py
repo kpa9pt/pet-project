@@ -5,7 +5,7 @@ from services.order_processor.app.repository import OrderRepository
 
 
 @pytest.mark.asyncio
-async def test_fastapi_create_order_integration(docker_compose_up, fastapi_ready):
+async def test_fastapi_create_order_integration(db_session):
     # 1. Получаем токен через реальный эндпоинт
     login_response = requests.post(
         "http://localhost:8000/auth/login", json={"user_id": 1}

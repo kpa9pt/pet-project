@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: orders
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -52,10 +52,29 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import socket; s=socket.socket(); s.connect(('localhost', 50051))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   fastapi:
     build: .
-    command: ["uvicorn", "services.gateway.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command:
+      [
+        "uvicorn",
+        "services.gateway.app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+      ]
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/orders}
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
@@ -67,13 +86,19 @@ services:
       - "8000:8000"
     depends_on:
       grpc-server:
-        condition: service_started
+        condition: service_healthy
       migrations:
         condition: service_completed_successfully
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -87,6 +112,8 @@ services:
       TELEGRAM_TOKEN: ${TELEGRAM_TOKEN:-fake_token_for_ci}
       SECRET_KEY: ${SECRET_KEY:-fake_secret_key_for_ci}
     depends_on:
+      postgres:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
 
