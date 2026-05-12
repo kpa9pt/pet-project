@@ -4,7 +4,7 @@ from shared import order_pb2, order_pb2_grpc
 
 
 @pytest.mark.asyncio
-async def test_grpc_create_order_integration():
+async def test_grpc_create_order_integration(docker_compose_up):
     # Сервис уже поднят docker-compose фикстурой
     channel = grpc.aio.insecure_channel("localhost:50051")
     stub = order_pb2_grpc.OrderProcessorStub(channel)

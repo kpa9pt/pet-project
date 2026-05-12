@@ -46,6 +46,8 @@ services:
     ports:
       - "50051:50051"
     depends_on:
+      migrations:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       rabbitmq:
@@ -66,8 +68,15 @@ services:
     depends_on:
       grpc-server:
         condition: service_started
+      migrations:
+        condition: service_completed_successfully
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   notifier:
     build: .

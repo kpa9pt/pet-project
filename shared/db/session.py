@@ -24,6 +24,16 @@ def get_engine() -> AsyncEngine:
     return _engine
 
 
+async def reset_db_state():
+    global _engine, _sessionmaker
+
+    if _engine is not None:
+        await _engine.dispose()
+
+    _engine = None
+    _sessionmaker = None
+
+
 def get_async_session_maker() -> async_sessionmaker[AsyncSession]:
     global _sessionmaker
 
